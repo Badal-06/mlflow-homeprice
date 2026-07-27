@@ -1,20 +1,8 @@
 #method 1
-docker build -t jenkins-maven-docker .
 
-docker run -d \
-  --name jen-mvn \
-  --user root \
-  -p 8081:8080 \
-  -p 50000:50000 \
-  -v jenkins_home:/var/jenkins_home \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  -v /home/hadoop/workspace/mlflow-homePrice:/workspace/mlflow-homePrice \
-  jenkins-maven-docker
- 
-#url
-http://0.0.0.0:8081/
+Download and install jenkins
 
-#method2
+OR
 
 docker run -d \
   --name jen-mvn \
@@ -26,18 +14,35 @@ docker run -d \
   -v /home/hadoop/workspace/mlflow-homePrice:/workspace/mlflow-homePrice \
   jenkins/jenkins
 
+ 
+#url
+http://0.0.0.0:8081/
 
-
-  #jenkins container
+#inside container
 apt-get update
+apt-get install -y python3-pip
+apt install python3.13-venv
 
-apt-get install -y \
-    build-essential \
-    gcc \
-    g++ \
-    gfortran \
-    python3-dev \
-    pkg-config
-    
-apt install python3.12-venv
+sudo apt update  
+apt-get install -y docker.io
+
+
+
+#method2 custom 
+
+docker build -t jenkins-maven-docker .
+
+docker run -d \
+  --name jen-mvn \
+  --user root \
+  -p 8081:8080 \
+  -p 50000:50000 \
+  -v jenkins_home:/var/jenkins_home \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v /home/hadoop/workspace/mlflow-homePrice:/workspace/mlflow-homePrice \
+  jenkins-maven-docker
+
+
+
+
 
