@@ -1,108 +1,89 @@
-df = pd.read_csv("data/house_prices.csv")
-
-#
-Empty cells
-Data in wrong format
-Wrong data
-Duplicates
-Missing Values
-Outliers
-
-# DF methods
-print(df)
-df.isnull().sum()
-df1.duplicated().sum()
-df.dropna(how = 'any')
-df.shape() 	# Prints the number of rows as well as columns in a data frame
-df.head(n) 	# Prints first n rows of the DataFrame
-df.tail(n) 	# Prints last n rows of the DataFrame
-df.info() 	# Index, Datatype, and Memory details
-df.describe() # Summary statistics for numerical columns
-df.apply(pd.Series.value_counts) # Unique values and counts for every columns
-df.describe() # brief statistics for numerical columns
-df.mean() # Returns the mean of every columns
-df.corr() # Returns the correlation between columns in a DataFrame
-df.count() # Returns the number of non-null values in each DataFrame column
-df.max() # Returns the biggest value in every column
-df.min() # Returns the lowest value in every column
-df.median() # Returns the median of every column
-df.std() # Returns the standard deviation of every column
-
-#cleaning
-df.columns = ['a','b','c'] # Renames columns
-pd.isnull() # Checks for null Values, Returns Boolean Array
-pd.notnull() # Opposite of s is null()
-df.dropna() # Drops all rows that contain null values
-df.dropna(axis=1) # Drops all columns that contain null values
-df.dropna(axis=1,thresh=n) # Drops all rows have have less than n non null values
-df.fillna(x) # Replaces all null values with x
-s.fillna(s.mean()) # Replaces all null values with the mean (mean can be replaced with almost any function from the statistics section)
-s.astype(float) # Converts the datatype of the series to float
-s.replace(1,'one') # Replaces all values equal to 1 with 'one'
-s.replace([1,3],['one','three']) # Replaces all 1 with 'one' and 3 with 'three'
-df.rename(columns=lambda x: x + 1) # Mass renaming of columns
-df.rename(columns={'old_name': 'new_ name'}) # Selective renaming
-df.set_index('column_one') # Changes the index
-df.rename(index=lambda x: x + 1) # Mass renaming of index  
- 
-
-
-##python
 import pandas as pd
 import seaborn as sb
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy import stats
+from pathlib import Path
 
-df = pd.read_csv('IMDB-Movie-Data.csv')
+DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+HOUSE_PRICES_FILE = DATA_DIR / "house_prices.csv"
+IMDB_FILE = DATA_DIR / "IMDB-Movie-Data.csv"
 
-#1 Missing Values
-#will return the sum of missing values within each column in the data frame
-df.isnull().sum()
 
-#2 visually ,Creating the heatmap
-plt.figure(figsize = (8,6))
-sb.heatmap(df.isnull(), cbar=False , cmap = 'magma')
+def analyze_house_prices():
+    df = pd.read_csv(HOUSE_PRICES_FILE)
+    print("House Prices dataset shape:", df.shape)
+    print("Missing values:\n", df.isnull().sum())
+    print("Duplicate rows:", df.duplicated().sum())
+    print("Columns:", df.columns.tolist())
+    print("First 5 rows:")
+    print(df.head(5))
+    print("Last 5 rows:")
+    print(df.tail(5))
+    df.info()
+    print("Summary statistics:\n", df.describe(include="all"))
+    print("Correlation matrix:\n", df.corr())
+    print("Non-null count per column:\n", df.count())
 
-#3 Dropping Missing Values:
- print(df.shape)
- #Dropping the missing rows.
- df_dropped = df.dropna(how = 'any')
- print(df_dropped.shape)
- df_dropped.to_csv('df_dropped.csv', encoding='utf-8', index=False)
+    df_clean = df.dropna(how="any")
+    print("Shape after dropping rows with any missing values:", df_clean.shape)
+    return df, df_clean
 
-#4 Replacing Missing values
-   --Creating a copy of dataframe
-	 df_new = df 
-	 df_new['Metascore'] = df_new['Metascore'].fillna((df_new['Metascore'].mean()))
- 
-    --printing the dataframes after replacing null values
-	print(df_new.isna().sum())
-	print(df.isna().sum())
-	df_new.to_csv('df_new.csv', encoding='utf-8', index=False)
 
-#5 Dealing with Outliers
-  -Z-score
-  -Scatter Plots
-  -Interquartile range(IQR)
-   
-   #Z-score  filtering outliers
-   --column on which this method is applied should be a numerical variable and not categorical.
-  df_new = df[(np.abs(stats.zscore(df.Votes)) < 3)]
-  print(df_new.isna().sum())
-  
-  #Quantiles
- -- By this method values falling below 0.01 & above 0.99 quantiles in series will filtered out.
-   #Selecting limits
-	q_low = df["Votes"].quantile(0.01)
-	q_hi  = df["Votes"].quantile(0.99)
- 
-	#filtering outliers
-	df_filtered = df[(df["Votes"] < q_hi) & (df["Votes"] > q_low)]
-	print(df_filtered.isna().sum())
+def analyze_imdb():
+    df = pd.read_csv(IMDB_FILE)
+    print("IMDB dataset shape:", df.shape)
+    print("Missing values:\n", df.isnull().sum())
 
-#6  Duplicate entries
-    df1 = df._append(df.iloc[20:30,:])
-    df1.duplicated().sum()
-	--dropping the duplicates
-    df1 = df1.drop_duplicates()
+    plt.figure(figsize=(8, 6))
+    sb.heatmap(df.isnull(), cbar=False, cmap="magma")
+    plt.title("Missing values heatmap")
+    plt.tight_layout()
+    plt.savefig("imdb_missing_heatmap.png")
+    print("Saved missing values heatmap to imdb_missing_heatmap.png")
+
+    df_dropped = df.dropna(how="any")
+    print("Shape after dropping rows with any missing values:", df_dropped.shape)
+    df_dropped.to_csv("df_dropped.csv", encoding="utf-8", index=False)
+
+    df_new = df.copy()
+    if "Metascore" in df_new.columns:
+        df_new["Metascore"] = df_new["Metascore"].fillna(df_new["Metascore"].mean())
+    else:
+        print("Column 'Metascore' not found; skipping fillna step.")
+
+    print("Missing values after filling Metascore:\n", df_new.isna().sum())
+    df_new.to_csv("df_new.csv", encoding="utf-8", index=False)
+
+    if "Votes" in df_new.columns and pd.api.types.is_numeric_dtype(df_new["Votes"]):
+        votes = df_new["Votes"].dropna()
+        if len(votes) > 0:
+            z_scores = np.abs(stats.zscore(votes))
+            df_zscore_filtered = df_new.loc[votes.index[z_scores < 3]]
+            print("Shape after Z-score filtering:", df_zscore_filtered.shape)
+            df_zscore_filtered.to_csv("df_zscore_filtered.csv", encoding="utf-8", index=False)
+
+        q_low = df_new["Votes"].quantile(0.01)
+        q_hi = df_new["Votes"].quantile(0.99)
+        df_quantile_filtered = df_new[(df_new["Votes"] > q_low) & (df_new["Votes"] < q_hi)]
+        print("Shape after quantile filtering:", df_quantile_filtered.shape)
+        df_quantile_filtered.to_csv("df_quantile_filtered.csv", encoding="utf-8", index=False)
+    else:
+        print("Column 'Votes' not found or not numeric; skipping outlier filtering steps.")
+
+    df1 = pd.concat([df, df.iloc[20:30, :]], ignore_index=True)
+    print("Duplicate rows in df1 sample:", df1.duplicated().sum())
+    df1 = df1.drop_duplicates(ignore_index=True)
+    print("Shape after dropping duplicates:", df1.shape)
+    df1.to_csv("df1_no_duplicates.csv", encoding="utf-8", index=False)
+
+    return df, df_dropped, df_new, df1
+
+
+def main():
+    analyze_house_prices()
+    analyze_imdb()
+
+
+if __name__ == "__main__":
+    main()
