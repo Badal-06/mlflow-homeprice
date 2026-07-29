@@ -2,21 +2,32 @@
 
 ------------------
 Train a simple ML model
+
 Track metrics
+
 Save model
+
 Serve locally
+
 End to end Deployment
 
 
 1. Create Virtual Environment
+
 ##python3.11
+
   python3.11 -m venv /home/hadoop/venv-mlflow
+  
   source /home/hadoop/venv-mlflow/bin/activate
+  
   deactivate
 
 2. Install Required Packages
+
   pip install -r requirements.txt
+  
   mlflow --version
+  
     >mlflow, version 3.11.0
 
 3. Create Project Structure
@@ -36,6 +47,7 @@ mlflow-homePrice/
 
 #Local
  /home/hadoop/workspace/mlflow-homePrice$  mlflow ui      
+ 
   http://127.0.0.1:5000
   
   Parameters
@@ -73,9 +85,12 @@ Copy artifact path
 
 OR ---------------------
 
-7. Model Deployment Directly  - 
+7. Model Deployment Directly 
+- 
 #Open another cmd/Terminal
+
   run_id: 0724aded5f00431592973ca08e5796d9  
+  
   --Get this value from /home/hadoop/workspace/mlflow-homePrice/mlruns/1/models/m-5bafd1af7f574fcab291bd157d1a29bc/artifacts/MLmodel
   cat MLmodel
  

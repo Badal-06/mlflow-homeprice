@@ -6,6 +6,15 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error, r2_score
 
+@mlflow.trace
+def train_model(model, X_train, y_train):
+    model.fit(X_train, y_train)
+    return model
+
+@mlflow.trace
+def make_prediction(model, X_test):
+    return model.predict(X_test)
+
 # Load CSV
 df = pd.read_csv("data/house_prices.csv")
 
@@ -28,8 +37,8 @@ mlflow.set_experiment("House Price Prediction")
 
 with mlflow.start_run():
 
-    ESTIMATORS = 1500
-    DEPTH = 25
+    ESTIMATORS = 200
+    DEPTH = 20
     RANDOM_STATE = 50
 
     model = RandomForestRegressor(
@@ -38,9 +47,11 @@ with mlflow.start_run():
         random_state=RANDOM_STATE
 )
 
-    model.fit(X_train, y_train)
+    # Traced
+    model = train_model(model, X_train, y_train)
 
-    prediction = model.predict(X_test)
+    # Traced
+    prediction = make_prediction(model, X_test)
 
     mse = mean_squared_error(y_test, prediction)
     r2 = r2_score(y_test, prediction)
@@ -55,10 +66,15 @@ with mlflow.start_run():
     mlflow.log_metric("R2", r2)
 
     # Save Model
+   # mlflow.sklearn.log_model(
+    #    sk_model=model,
+     #   artifact_path="house_model"
+    #)
+   
     mlflow.sklearn.log_model(
         sk_model=model,
-        artifact_path="house_model"
-    )
+        artifact_path="house_model",
+        registered_model_name="HousePriceModel")
 
     print("Training Completed")
     print("MSE :", mse)
