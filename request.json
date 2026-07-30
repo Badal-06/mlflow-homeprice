@@ -1,0 +1,12 @@
+{
+  "dataframe_records": [
+    {
+      "LotArea": 9000,
+      "OverallQual": 7,
+      "OverallCond": 5,
+      "YearBuilt": 2010,
+      "GrLivArea": 1900,
+      "GarageCars": 2
+    }
+  ]
+}
