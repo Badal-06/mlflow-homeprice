@@ -79,12 +79,13 @@ pipeline {
 
             steps {
                 sh """
+                kubectl apply -f deployment.yml
+
                 kubectl set image deployment/house-price \
                 house-price=${IMAGE_NAME}:${IMAGE_TAG}
 
                 kubectl rollout status deployment/house-price
                 """
-
             }
         }
 
