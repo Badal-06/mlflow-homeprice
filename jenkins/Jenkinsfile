@@ -9,10 +9,22 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main',
+
+                deleteDir()
+
+                git(
+                    branch: 'main',
                     url: 'https://github.com/Badal-06/mlflow-homeprice.git'
+                )
+
+                sh '''
+                echo "Repository files:"
+                ls -la
+                '''
             }
         }
+    
+    
 
         stage('Create Python Environment') {
             steps {
