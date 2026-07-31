@@ -10,7 +10,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 git branch: 'main',
-                    url: 'https://github.com/chandranitu/mlflow-homeprice.git'
+                    url: 'https://github.com/badal-06/mlflow-homeprice.git'
             }
         }
 
