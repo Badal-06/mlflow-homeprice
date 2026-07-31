@@ -1,13 +1,21 @@
 pipeline {
 
     agent any
+
     environment {
+
         IMAGE_NAME = "house-price"
         IMAGE_TAG  = "${BUILD_NUMBER}"
+
+        EXPERIMENT_ID = "1"
     }
 
+
     stages {
+
+
         stage('Checkout') {
+
             steps {
 
                 deleteDir()
@@ -17,115 +25,201 @@ pipeline {
                     url: 'https://github.com/Badal-06/mlflow-homeprice.git'
                 )
 
+
                 sh '''
                 echo "Repository files:"
                 ls -la
+
+                echo "Kubernetes files:"
+                ls -la k8
                 '''
             }
         }
-    
-    
+
+
 
         stage('Create Python Environment') {
+
             steps {
+
                 sh '''
+
                 python3 -m venv venv
 
                 . venv/bin/activate
 
                 pip install --upgrade pip
+
                 pip install -r requirements.txt
+
                 '''
             }
         }
+
+
 
         stage('Train Model') {
+
             steps {
+
                 sh '''
+
                 . venv/bin/activate
+
                 python train.py
+
                 '''
             }
         }
 
+
+
         stage('Find Latest MLflow Model') {
+
 
             steps {
 
                 script {
 
+
                     env.MODEL_PATH = sh(
-                        script: '''
-                        ls -td mlruns/1/models/* | head -1
-                        ''',
+
+                        script: """
+
+                        ls -td mlruns/${EXPERIMENT_ID}/models/*/artifacts | head -1
+
+                        """,
+
                         returnStdout: true
+
                     ).trim()
-                    echo "Latest Model = ${env.MODEL_PATH}"
+
+
+
+                    echo "Latest Model Path = ${env.MODEL_PATH}"
+
                 }
 
             }
+
         }
+
+
 
         stage('Build Docker Image') {
 
+
             steps {
+
                 sh """
-                docker build \
-                --build-arg MODEL_PATH=${MODEL_PATH} \
+
+                docker build \\
+                --build-arg MODEL_PATH=${MODEL_PATH} \\
                 -t ${IMAGE_NAME}:${IMAGE_TAG} .
+
                 """
 
             }
+
         }
+
+
 
         stage('Load Image into Kind') {
 
+
             steps {
+
                 sh """
+
                 kind load docker-image ${IMAGE_NAME}:${IMAGE_TAG}
+
                 """
+
             }
+
         }
+
+
+
 
         stage('Deploy to Kubernetes') {
 
+
             steps {
+
                 sh """
+
                 kubectl apply -f k8/deployment.yml
+
                 kubectl apply -f k8/service.yml
 
-                kubectl set image deployment/house-price \
+
+                kubectl set image deployment/house-price \\
                 house-price=${IMAGE_NAME}:${IMAGE_TAG}
 
-                kubectl rollout status deployment/house-price
+
+                kubectl rollout status deployment/house-price --timeout=120s
+
                 """
+
             }
+
         }
 
-        
+
+
 
         stage('Verify Deployment') {
 
+
             steps {
+
                 sh '''
+
+                echo "Pods:"
                 kubectl get pods
+
+
+                echo "Services:"
                 kubectl get svc
+
+
+                echo "Deployments:"
                 kubectl get deployment
+
                 '''
+
             }
+
         }
+
     }
+
+
 
     post {
 
+
         success {
+
             echo "Pipeline completed successfully."
+
         }
+
+
         failure {
+
             echo "Pipeline failed."
+
         }
-        always {
-            cleanWs()
-        }
+
+
+        // Uncomment after successful deployment
+        // always {
+        //     cleanWs()
+        // }
+
     }
+
 }
